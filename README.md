@@ -8,11 +8,11 @@
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
     <p align="center">
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License"/></a>
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
 <a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
 <a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backerson Open Collective" /></a>
 <a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
   <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
     <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
@@ -105,10 +105,94 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Author - [Kamil Mysliwiec](https://twitter.com/kammysliwiec)
 - Website - [https://nestjs.com](https://nestjs.com/)
 - Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Evaluación práctica: Integración Cursos, Estudiantes y Matrículas
+
+API NestJS que gestiona **Cursos**, **Estudiantes** y **Matrículas** usando listas en memoria (sin base de datos). Resultado de unificar la rama `main` (Cursos) con la rama `Tarea1` (Estudiantes) y agregar el módulo de Matrículas.
+
+### Endpoints
+
+| Método | Ruta                                | Descripción                                                    |
+|--------|--------------------------------------|-----------------------------------------------------------------|
+| GET    | `/courses`                          | Lista todos los cursos (filtro opcional `?level=`)               |
+| GET    | `/courses/:id`                      | Obtiene un curso por id                                          |
+| POST   | `/courses`                          | Crea un curso                                                    |
+| PATCH  | `/courses/:id`                      | Actualiza un curso                                               |
+| DELETE | `/courses/:id`                      | Elimina un curso                                                 |
+| GET    | `/students`                         | Lista todos los estudiantes                                     |
+| POST   | `/students`                         | Crea un estudiante                                               |
+| POST   | `/enrollments`                      | Registra una matrícula                                           |
+| GET    | `/enrollments`                      | Lista matrículas (filtros opcionales `?studentId=&courseId=`)    |
+| GET    | `/students/:studentId/enrollments`  | Lista las matrículas de un estudiante                            |
+| GET    | `/courses/:courseId/enrollments`    | Lista las matrículas de un curso                                 |
+| DELETE | `/enrollments/:id`                  | Cancela (elimina) una matrícula                                  |
+
+### Ejemplos de request / response
+
+Registrar una matrícula válida
+
+```
+POST /enrollments
+Body: { "studentId": 1, "courseId": 1 }
+
+Response 201:
+{ "id": 1, "studentId": 1, "courseId": 1 }
+```
+
+Matrícula duplicada
+
+```
+POST /enrollments
+Body: { "studentId": 1, "courseId": 1 }
+
+Response 409:
+{ "message": "El estudiante 1 ya está matriculado en el curso 1", "error": "Conflict", "statusCode": 409 }
+```
+
+Estudiante inactivo
+
+```
+POST /enrollments
+Body: { "studentId": 2, "courseId": 1 }
+
+Response 400:
+{ "message": "El estudiante con id 2 no está activo", "error": "Bad Request", "statusCode": 400 }
+```
+
+Curso o estudiante inexistente
+
+```
+POST /enrollments
+Body: { "studentId": 1, "courseId": 999 }
+
+Response 404:
+{ "message": "El curso con id 999 no existe", "error": "Not Found", "statusCode": 404 }
+```
+
+**Filtrar matrículas**
+
+```
+GET /enrollments?studentId=1
+GET /students/1/enrollments
+GET /courses/1/enrollments
+```
+
+**Cancelar una matrícula**
+
+```
+DELETE /enrollments/2
+
+Response 200:
+{ "id": 2, "studentId": 1, "courseId": 2 }
+```
+
+### Validación global
+
+Se activó `ValidationPipe` global con `whitelist: true` y `forbidNonWhitelisted: true` en `main.ts`, y se usa `ParseIntPipe` para validar/transformar los identificadores de ruta (`:id`, `:studentId`, `:courseId`) en `EnrollmentsController`.
