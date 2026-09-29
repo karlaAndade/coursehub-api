@@ -1,59 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateCourseDto } from './dto/create-course.dto.js';
+import { UpdateCourseDto } from './dto/update-course.dto.js';
+import { Course } from './entities/course.entity.js';
 
-type Course = {
-    id: number;
-    title: string;
-    level: string;
-};
-type CreateCourseInput = {
-    title: string;
-    level: string;
-};
-type UpdateCourseInput = {
-    title?: string;
-    level?: string;
-};
 @Injectable()
-    export class CoursesService {
-        private nextId = 4;
-        private courses: Course[] = [
-        { id: 1, title: 'NestJS Fundamentals', level: 'beginner' },
-        { id: 2, title: 'REST APIs with NestJS', level: 'beginner' },
-        { id: 3, title: 'NestJS Architecture', level: 'intermediate' },
-    ];
-    findAll(level?: string): Course[] {
-        if (!level) {
-        return this.courses;
-        }
-    return this.courses.filter((course) => course.level === level);
-    }
-    findOne(id: number): Course | undefined {
-        return this.courses.find((course) => course.id === id);
-    }
-    create(createCourseDto: CreateCourseDto): Course {
-        const course: Course = {
-        id: this.nextId++,
-        title: createCourseDto.title,
-        level: createCourseDto.level,
-    };
-    this.courses.push(course);
+export class CoursesService {
+  constructor(
+    @InjectRepository(Course) private readonly courses: Repository<Course>,
+  ) {}
+
+  findAll(level?: string) {
+    return this.courses.find({ where: level ? { level } : {} });
+  }
+
+  async findOne(id: number): Promise<Course> {
+    const course = await this.courses.findOneBy({ id });
+    if (!course) throw new NotFoundException(`Course ${id} not found`);
     return course;
-    }
-    update(id: number, input: UpdateCourseInput): Course | undefined {
-        const course = this.findOne(id);
-    if (!course) {
-        return undefined;
-    }
-    Object.assign(course, input);
+  }
+
+  create(dto: CreateCourseDto) {
+    return this.courses.save(this.courses.create(dto));
+  }
+
+  async update(id: number, dto: UpdateCourseDto) {
+    const course = await this.findOne(id);
+    return this.courses.save(Object.assign(course, dto));
+  }
+
+  async remove(id: number) {
+    const course = await this.findOne(id);
+    await this.courses.remove(course);
     return course;
-    }
-    remove(id: number): Course | undefined {
-    const index = this.courses.findIndex((course) => course.id === id);
-    if (index === -1) {
-        return undefined;
-    }
-    const [removedCourse] = this.courses.splice(index, 1);
-    return removedCourse;
-    }
+  }
 }
