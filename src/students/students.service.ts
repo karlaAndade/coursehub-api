@@ -1,4 +1,5 @@
-﻿import {
+import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -23,12 +24,13 @@ export class StudentsService {
   }
 
   async findAll(
-    filters: { career?: string; isActive?: boolean } = {},
+    filters: { career?: string; semester?: number; isActive?: boolean } = {},
   ): Promise<Student[]> {
     const where: Record<string, unknown> = {};
     if (filters.career !== undefined) where.career = filters.career;
+    if (filters.semester !== undefined) where.semester = filters.semester;
     if (filters.isActive !== undefined) where.isActive = filters.isActive;
-    return this.studentsRepository.find({ where });
+    return this.studentsRepository.find({ where, order: { id: 'ASC' } });
   }
 
   async findOne(id: number): Promise<Student> {
@@ -45,11 +47,17 @@ export class StudentsService {
       await this.ensureEmailIsFree(dto.email, id);
     }
     Object.assign(student, dto);
-    return this.saveStudent(student);
+    await this.saveStudent(student);
+    return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
     const student = await this.findOne(id);
+    if (!student.isActive) {
+      throw new BadRequestException(
+        'No se puede eliminar a un estudiante inactivo',
+      );
+    }
     await this.studentsRepository.remove(student);
   }
 

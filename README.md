@@ -1,4 +1,4 @@
-﻿# CourseHub API
+# CourseHub API
 
 API REST construida con NestJS, TypeORM y PostgreSQL para gestionar cursos, estudiantes y matrículas. Los tres módulos guardan sus datos en la misma base de datos, así que la información sigue disponible después de reiniciar la API.
 
@@ -49,10 +49,10 @@ La API queda disponible en `http://localhost:3000`. Con `DATABASE_SYNCHRONIZE=tr
 | Método | Ruta | Descripción | Códigos |
 |---|---|---|---|
 | POST | `/students` | Crea un estudiante | 201, 400, 409 |
-| GET | `/students` | Lista con filtros opcionales `career` e `isActive` | 200, 400 |
+| GET | `/students` | Lista con filtros opcionales y combinables `career`, `semester` e `isActive` | 200, 400 |
 | GET | `/students/:id` | Consulta un estudiante | 200, 400, 404 |
 | PATCH | `/students/:id` | Modifica un estudiante | 200, 400, 404, 409 |
-| DELETE | `/students/:id` | Elimina un estudiante y sus matrículas | 204, 400, 404 |
+| DELETE | `/students/:id` | Elimina un estudiante activo y sus matrículas (un estudiante inactivo no se puede eliminar: 400) | 204, 400, 404 |
 
 Campos del estudiante: `name`, `email` (único), `age`, `career`, `semester` (1 a 10) e `isActive`.
 

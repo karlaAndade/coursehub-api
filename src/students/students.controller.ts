@@ -1,4 +1,4 @@
-﻿import {
+import {
   Body,
   Controller,
   Delete,
@@ -28,10 +28,12 @@ export class StudentsController {
   @Get()
   findAll(
     @Query('career') career?: string,
+    @Query('semester', new ParseIntPipe({ optional: true }))
+    semester?: number,
     @Query('isActive', new ParseBoolPipe({ optional: true }))
     isActive?: boolean,
   ) {
-    return this.studentsService.findAll({ career, isActive });
+    return this.studentsService.findAll({ career, semester, isActive });
   }
 
   @Get(':id')
