@@ -1,0 +1,138 @@
+﻿EVIDENCIA - Proyecto práctico Semana 5
+CourseHub API persistente: estudiantes y matrículas
+Fecha: 2026-10-11 17:31
+
+=== CASO 1a. Crear curso ===
+Petición: POST /courses
+Cuerpo: {"level":"intermediate","title":"NestJS Persistente 20261011173133"}
+Código esperado: 201 | obtenido: 201 -> OK
+Respuesta: {"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"}
+
+=== CASO 1b. Crear estudiante activo ===
+Petición: POST /students
+Cuerpo: {"name":"Ana Pérez","age":21,"email":"ana.20261011173133@mail.com","career":"Diseño","semester":4,"isActive":true}
+Código esperado: 201 | obtenido: 201 -> OK
+Respuesta: {"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true}
+
+=== CASO 2. Crear matrícula válida ===
+Petición: POST /enrollments
+Cuerpo: {"courseId":2,"studentId":4}
+Código esperado: 201 | obtenido: 201 -> OK
+Respuesta: {"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}
+
+=== CASO 3. Reinicio de la API ===
+Se detiene la API con Ctrl+C y se vuelve a iniciar con: npm run start:dev
+API reiniciada. Se consultan los datos creados antes del reinicio.
+
+=== CASO 3a. El estudiante sigue existiendo ===
+Petición: GET /students/4
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: {"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true}
+
+=== CASO 3b. El curso sigue existiendo ===
+Petición: GET /courses/2
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: {"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"}
+
+=== CASO 3c. La matrícula sigue existiendo ===
+Petición: GET /enrollments?studentId=4
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: [{"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}]
+
+=== CASO 4. Matrícula duplicada ===
+Petición: POST /enrollments
+Cuerpo: {"courseId":2,"studentId":4}
+Código esperado: 409 | obtenido: 409 -> OK
+Respuesta: {"message":"El estudiante ya está matriculado en este curso","error":"Conflict","statusCode":409}
+
+=== CASO 5a. Crear estudiante inactivo ===
+Petición: POST /students
+Cuerpo: {"name":"Luis Mora","age":23,"email":"luis.20261011173133@mail.com","career":"Diseño","semester":6,"isActive":false}
+Código esperado: 201 | obtenido: 201 -> OK
+Respuesta: {"id":5,"name":"Luis Mora","email":"luis.20261011173133@mail.com","age":23,"career":"Diseño","semester":6,"isActive":false}
+
+=== CASO 5b. Matricular estudiante inactivo ===
+Petición: POST /enrollments
+Cuerpo: {"courseId":2,"studentId":5}
+Código esperado: 400 | obtenido: 400 -> OK
+Respuesta: {"message":"No se puede matricular a un estudiante inactivo","error":"Bad Request","statusCode":400}
+
+=== CASO 6a. Filtrar por estudiante ===
+Petición: GET /enrollments?studentId=4
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: [{"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}]
+
+=== CASO 6b. Filtrar por curso ===
+Petición: GET /enrollments?courseId=2
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: [{"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}]
+
+=== CASO 6c. Filtros combinados ===
+Petición: GET /enrollments?studentId=4&courseId=2
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: [{"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}]
+
+=== CASO 6d. Ruta /students/:id/enrollments ===
+Petición: GET /students/4/enrollments
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: [{"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}]
+
+=== CASO 6e. Ruta /courses/:id/enrollments ===
+Petición: GET /courses/2/enrollments
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: [{"id":1,"student":{"id":4,"name":"Ana Pérez","email":"ana.20261011173133@mail.com","age":21,"career":"Diseño","semester":4,"isActive":true},"course":{"id":2,"title":"NestJS Persistente 20261011173133","level":"intermediate"},"createdAt":"2026-10-11T22:31:34.007Z"}]
+
+=== CASO 7a. Cancelar matrícula ===
+Petición: DELETE /enrollments/1
+Código esperado: 204 | obtenido: 204 -> OK
+Respuesta: (sin contenido)
+
+=== CASO 7b. El listado ya no la muestra (debe ser []) ===
+Petición: GET /enrollments?studentId=4
+Código esperado: 200 | obtenido: 200 -> OK
+Respuesta: []
+
+=== CASO 7c. Cancelar otra vez: ya no existe ===
+Petición: DELETE /enrollments/1
+Código esperado: 404 | obtenido: 404 -> OK
+Respuesta: {"message":"No existe la matrícula con id 1","error":"Not Found","statusCode":404}
+
+=== EXTRA 1. Crear estudiante con correo repetido ===
+Petición: POST /students
+Cuerpo: {"name":"Ana Pérez","age":21,"email":"ana.20261011173133@mail.com","career":"Diseño","semester":4,"isActive":true}
+Código esperado: 409 | obtenido: 409 -> OK
+Respuesta: {"message":"El correo ana.20261011173133@mail.com ya está registrado por otro estudiante","error":"Conflict","statusCode":409}
+
+=== EXTRA 2. Actualizar con el correo de otro estudiante ===
+Petición: PATCH /students/5
+Cuerpo: {"email":"ana.20261011173133@mail.com"}
+Código esperado: 409 | obtenido: 409 -> OK
+Respuesta: {"message":"El correo ana.20261011173133@mail.com ya está registrado por otro estudiante","error":"Conflict","statusCode":409}
+
+=== EXTRA 3. Matrícula con estudiante inexistente ===
+Petición: POST /enrollments
+Cuerpo: {"courseId":2,"studentId":999999}
+Código esperado: 404 | obtenido: 404 -> OK
+Respuesta: {"message":"No existe el estudiante con id 999999","error":"Not Found","statusCode":404}
+
+=== EXTRA 4. Matrícula con curso inexistente ===
+Petición: POST /enrollments
+Cuerpo: {"courseId":999999,"studentId":4}
+Código esperado: 404 | obtenido: 404 -> OK
+Respuesta: {"message":"No existe el curso con id 999999","error":"Not Found","statusCode":404}
+
+=== EXTRA 5. Matrícula con datos inválidos ===
+Petición: POST /enrollments
+Cuerpo: {"courseId":2,"studentId":"abc"}
+Código esperado: 400 | obtenido: 400 -> OK
+Respuesta: {"message":["studentId must be a positive number","studentId must be an integer number"],"error":"Bad Request","statusCode":400}
+
+FIN DE LA DEMOSTRACIÓN
+
+=== VERIFICACION EN POSTGRESQL: restricciones de students y enrollments ===
+students | PRIMARY KEY | PRIMARY KEY (id)
+students | UNIQUE | UNIQUE (email)
+enrollments | FOREIGN KEY | FOREIGN KEY ("studentId") REFERENCES students(id) ON DELETE CASCADE
+enrollments | FOREIGN KEY | FOREIGN KEY ("courseId") REFERENCES courses(id) ON DELETE CASCADE
+enrollments | PRIMARY KEY | PRIMARY KEY (id)
+enrollments | UNIQUE | UNIQUE ("studentId", "courseId")

@@ -1,198 +1,116 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+﻿# CourseHub API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST construida con NestJS, TypeORM y PostgreSQL para gestionar cursos, estudiantes y matrículas. Los tres módulos guardan sus datos en la misma base de datos, así que la información sigue disponible después de reiniciar la API.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License"/></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backerson Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+    Course 1 ---- * Enrollment * ---- 1 Student
 
-## Description
+## Requisitos
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Node.js 20 o superior
+- PostgreSQL 17 (también funciona con versiones recientes)
+- Una base de datos creada con el mismo nombre que pongas en `DATABASE_NAME`
 
-## Project setup
+## Variables de entorno
 
-```bash
-$ npm install
-```
+Copia `.env.example` como `.env` y completa los valores reales. El archivo `.env` está ignorado por Git y no debe publicarse.
 
-## Compile and run the project
+| Variable | Descripción | Ejemplo |
+|---|---|---|
+| `DATABASE_HOST` | Servidor de PostgreSQL | `localhost` |
+| `DATABASE_PORT` | Puerto de PostgreSQL | `5432` |
+| `DATABASE_NAME` | Nombre de la base de datos | `coursehub` |
+| `DATABASE_USER` | Usuario de PostgreSQL | `postgres` |
+| `DATABASE_PASSWORD` | Contraseña del usuario | (tu contraseña) |
+| `DATABASE_SYNCHRONIZE` | `true` crea y actualiza las tablas automáticamente | `true` |
 
-```bash
-# development
-$ npm run start
+`DATABASE_SYNCHRONIZE=true` es solo para desarrollo local. En cualquier otro entorno debe estar en `false` o ausente, y las tablas se manejarían con migraciones (fuera del alcance de esta entrega).
 
-# watch mode
-$ npm run start:dev
+## Instalación y ejecución
 
-# production mode
-$ npm run start:prod
-```
+    npm install
+    npm run start:dev
 
-## Run tests
+La API queda disponible en `http://localhost:3000`. Con `DATABASE_SYNCHRONIZE=true`, las tablas `courses`, `students` y `enrollments` se crean solas al arrancar.
 
-```bash
-# unit tests
-$ npm run test
+## Endpoints
 
-# e2e tests
-$ npm run test:e2e
+### Cursos
 
-# test coverage
-$ npm run test:cov
-```
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/courses` | Crea un curso (`level`: `beginner`, `intermediate` o `advanced`) |
+| GET | `/courses` | Lista los cursos |
+| GET | `/courses/:id` | Consulta un curso |
+| PATCH | `/courses/:id` | Modifica un curso |
+| DELETE | `/courses/:id` | Elimina un curso |
 
-## Deployment
+### Estudiantes
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Método | Ruta | Descripción | Códigos |
+|---|---|---|---|
+| POST | `/students` | Crea un estudiante | 201, 400, 409 |
+| GET | `/students` | Lista con filtros opcionales `career` e `isActive` | 200, 400 |
+| GET | `/students/:id` | Consulta un estudiante | 200, 400, 404 |
+| PATCH | `/students/:id` | Modifica un estudiante | 200, 400, 404, 409 |
+| DELETE | `/students/:id` | Elimina un estudiante y sus matrículas | 204, 400, 404 |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Campos del estudiante: `name`, `email` (único), `age`, `career`, `semester` (1 a 10) e `isActive`.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Matrículas
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+| Método | Ruta | Descripción | Códigos |
+|---|---|---|---|
+| POST | `/enrollments` | Crea una matrícula con `studentId` y `courseId` | 201, 400, 404, 409 |
+| GET | `/enrollments` | Lista matrículas, con filtros combinables `studentId` y `courseId` | 200, 400 |
+| GET | `/students/:studentId/enrollments` | Matrículas de un estudiante | 200, 400, 404 |
+| GET | `/courses/:courseId/enrollments` | Matrículas de un curso | 200, 400, 404 |
+| DELETE | `/enrollments/:id` | Cancela una matrícula | 204, 400, 404 |
 
-## Observability
+Las consultas de matrículas devuelven los datos completos de `student` y `course`.
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+## Reglas de negocio y códigos HTTP
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+| Situación | Código |
+|---|---|
+| El estudiante o el curso no existe | 404 Not Found |
+| El estudiante está inactivo | 400 Bad Request |
+| La matrícula ya existe para esa pareja estudiante-curso | 409 Conflict |
+| El correo ya pertenece a otro estudiante (al crear o actualizar) | 409 Conflict |
+| Cuerpo, parámetro o filtro inválido | 400 Bad Request |
+| La matrícula a cancelar no existe | 404 Not Found |
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+El orden de las comprobaciones al matricular es: existe el estudiante, existe el curso, el estudiante está activo y no hay una matrícula previa.
 
-## Resources
+## Integridad en la base de datos
 
-Check out a few resources that may come in handy when working with NestJS:
+Además de las reglas del servicio, PostgreSQL las refuerza:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- `students.email` tiene una restricción `UNIQUE`.
+- `enrollments` tiene claves foráneas hacia `students` y `courses`, generadas por las relaciones de TypeORM.
+- `enrollments` tiene una restricción `UNIQUE` sobre la pareja `studentId` y `courseId`.
 
-## Support
+Si PostgreSQL rechaza un duplicado, el servicio lo traduce a 409 en lugar de devolver un error 500.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Fecha de matrícula
 
-## Stay in touch
+Cada matrícula guarda `createdAt`, y el listado se devuelve ordenado de la más reciente a la más antigua. La fecha la genera el servidor al crear el registro (`@CreateDateColumn`) y no se acepta como dato del cliente. Si el cliente la enviara, podría falsificar el momento de una inscripción o alterar el orden del historial. El `ValidationPipe` rechaza con 400 cualquier campo que no esté declarado en el DTO.
 
-- Author - [Kamil Mysliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Validación global
 
-## License
+`main.ts` activa un `ValidationPipe` global con `whitelist`, `forbidNonWhitelisted` y `transform`. Los identificadores de ruta (`:id`, `:studentId`, `:courseId`) pasan por `ParseIntPipe`, y los filtros de matrículas se validan con `QueryEnrollmentsDto`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Demostración
 
-## Evaluación práctica: Integración Cursos, Estudiantes y Matrículas
+El script `demo-semana5.ps1` ejecuta los siete casos de la práctica y cinco pruebas adicionales del contrato HTTP. Guarda todo en `evidencia-semana5.txt`, que incluye las respuestas reales de cada caso y la verificación de las restricciones directamente en PostgreSQL.
 
-API NestJS que gestiona **Cursos**, **Estudiantes** y **Matrículas** usando listas en memoria (sin base de datos). Resultado de unificar la rama `main` (Cursos) con la rama `Tarea1` (Estudiantes) y agregar el módulo de Matrículas.
+    powershell -ExecutionPolicy Bypass -File .\demo-semana5.ps1
 
-### Endpoints
+Con la API corriendo en otra terminal, el script se detiene en el caso 3 para que reinicies la API y confirmes que los datos siguen ahí.
 
-| Método | Ruta                                | Descripción                                                    |
-|--------|--------------------------------------|-----------------------------------------------------------------|
-| GET    | `/courses`                          | Lista todos los cursos (filtro opcional `?level=`)               |
-| GET    | `/courses/:id`                      | Obtiene un curso por id                                          |
-| POST   | `/courses`                          | Crea un curso                                                    |
-| PATCH  | `/courses/:id`                      | Actualiza un curso                                               |
-| DELETE | `/courses/:id`                      | Elimina un curso                                                 |
-| GET    | `/students`                         | Lista todos los estudiantes                                     |
-| POST   | `/students`                         | Crea un estudiante                                               |
-| POST   | `/enrollments`                      | Registra una matrícula                                           |
-| GET    | `/enrollments`                      | Lista matrículas (filtros opcionales `?studentId=&courseId=`)    |
-| GET    | `/students/:studentId/enrollments`  | Lista las matrículas de un estudiante                            |
-| GET    | `/courses/:courseId/enrollments`    | Lista las matrículas de un curso                                 |
-| DELETE | `/enrollments/:id`                  | Cancela (elimina) una matrícula                                  |
-
-### Ejemplos de request / response
-
-Registrar una matrícula válida
-
-```
-POST /enrollments
-Body: { "studentId": 1, "courseId": 1 }
-
-Response 201:
-{ "id": 1, "studentId": 1, "courseId": 1 }
-```
-
-Matrícula duplicada
-
-```
-POST /enrollments
-Body: { "studentId": 1, "courseId": 1 }
-
-Response 409:
-{ "message": "El estudiante 1 ya está matriculado en el curso 1", "error": "Conflict", "statusCode": 409 }
-```
-
-Estudiante inactivo
-
-```
-POST /enrollments
-Body: { "studentId": 2, "courseId": 1 }
-
-Response 400:
-{ "message": "El estudiante con id 2 no está activo", "error": "Bad Request", "statusCode": 400 }
-```
-
-Curso o estudiante inexistente
-
-```
-POST /enrollments
-Body: { "studentId": 1, "courseId": 999 }
-
-Response 404:
-{ "message": "El curso con id 999 no existe", "error": "Not Found", "statusCode": 404 }
-```
-
-**Filtrar matrículas**
-
-```
-GET /enrollments?studentId=1
-GET /students/1/enrollments
-GET /courses/1/enrollments
-```
-
-**Cancelar una matrícula**
-
-```
-DELETE /enrollments/2
-
-Response 200:
-{ "id": 2, "studentId": 1, "courseId": 2 }
-```
-
-### Validación global
-
-Se activó `ValidationPipe` global con `whitelist: true` y `forbidNonWhitelisted: true` en `main.ts`, y se usa `ParseIntPipe` para validar/transformar los identificadores de ruta (`:id`, `:studentId`, `:courseId`) en `EnrollmentsController`.
+1. Crear un curso y un estudiante activo.
+2. Crear una matrícula válida.
+3. Reiniciar la API y consultar la misma matrícula.
+4. Matrícula duplicada: responde 409.
+5. Estudiante inactivo: responde 400.
+6. Filtrar matrículas por estudiante y por curso.
+7. Cancelar la matrícula y comprobar que ya no se encuentra.

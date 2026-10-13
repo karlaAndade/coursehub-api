@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
@@ -22,7 +22,8 @@ import { EnrollmentsModule } from './enrollments/enrollments.module.js';
         password: config.getOrThrow('DATABASE_PASSWORD'),
         database: config.getOrThrow('DATABASE_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        // Solo para desarrollo local: se activa con DATABASE_SYNCHRONIZE=true
+        synchronize: config.get('DATABASE_SYNCHRONIZE') === 'true',
       }),
     }),
     CoursesModule,
