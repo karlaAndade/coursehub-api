@@ -12,7 +12,7 @@ export class CoursesService {
   ) {}
 
   findAll(level?: string) {
-    return this.courses.find({ where: level ? { level } : {} });
+    return this.courses.find({ where: level ? { level } : {}, order: { id: "ASC" } });
   }
 
   async findOne(id: number): Promise<Course> {
