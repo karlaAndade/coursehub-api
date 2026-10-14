@@ -76,27 +76,64 @@ export class EnrollmentsService {
     }
   }
 
-  async findAll(filters: QueryEnrollmentsDto = {}): Promise<Enrollment[]> {
-    const where: Record<string, unknown> = {};
-    if (filters.studentId !== undefined) {
-      where.student = { id: filters.studentId };
+  async findAll(
+    query: Partial<QueryEnrollmentsDto> = new QueryEnrollmentsDto(),
+  ) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const queryBuilder = this.enrollmentsRepository
+      .createQueryBuilder('enrollment')
+      .leftJoinAndSelect('enrollment.student', 'student')
+      .leftJoinAndSelect('enrollment.course', 'course');
+
+    if (query.search?.trim()) {
+      queryBuilder.andWhere(
+        '(student.name ILIKE :search OR course.title ILIKE :search)',
+        { search: `%${query.search.trim()}%` },
+      );
     }
-    if (filters.courseId !== undefined) {
-      where.course = { id: filters.courseId };
+    if (query.studentId !== undefined) {
+      queryBuilder.andWhere('student.id = :studentId', {
+        studentId: query.studentId,
+      });
     }
-    return this.enrollmentsRepository.find({
-      where,
-      relations: { student: true, course: true },
-      order: { createdAt: 'DESC' },
-    });
+    if (query.courseId !== undefined) {
+      queryBuilder.andWhere('course.id = :courseId', {
+        courseId: query.courseId,
+      });
+    }
+    if (query.activeOnly === 'true') {
+      queryBuilder.andWhere('student.isActive = :active', { active: true });
+    }
+
+    const [items, total] = await queryBuilder
+      .orderBy('enrollment.id', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+      },
+    };
   }
 
   async findByStudent(studentId: number): Promise<Enrollment[]> {
     const student = await this.studentsRepository.findOneBy({ id: studentId });
     if (!student) {
-      throw new NotFoundException(`No existe el estudiante con id ${studentId}`);
+      throw new NotFoundException(
+        `No existe el estudiante con id ${studentId}`,
+      );
     }
-    return this.findAll({ studentId });
+    return this.enrollmentsRepository.find({
+      where: { student: { id: studentId } },
+      relations: { student: true, course: true },
+      order: { id: 'ASC' },
+    });
   }
 
   async findByCourse(courseId: number): Promise<Enrollment[]> {
@@ -104,7 +141,11 @@ export class EnrollmentsService {
     if (!course) {
       throw new NotFoundException(`No existe el curso con id ${courseId}`);
     }
-    return this.findAll({ courseId });
+    return this.enrollmentsRepository.find({
+      where: { course: { id: courseId } },
+      relations: { student: true, course: true },
+      order: { id: 'ASC' },
+    });
   }
 
   async remove(id: number): Promise<void> {

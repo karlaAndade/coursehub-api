@@ -12,8 +12,17 @@ import { EnrollmentsService } from './enrollments.service.js';
 
 describe('EnrollmentsService', () => {
   let service: EnrollmentsService;
+  let queryBuilder: {
+    andWhere: ReturnType<typeof vi.fn>;
+    getManyAndCount: ReturnType<typeof vi.fn>;
+    leftJoinAndSelect: ReturnType<typeof vi.fn>;
+    orderBy: ReturnType<typeof vi.fn>;
+    skip: ReturnType<typeof vi.fn>;
+    take: ReturnType<typeof vi.fn>;
+  };
   let enrollmentsRepository: {
     create: ReturnType<typeof vi.fn>;
+    createQueryBuilder: ReturnType<typeof vi.fn>;
     find: ReturnType<typeof vi.fn>;
     findOne: ReturnType<typeof vi.fn>;
     findOneBy: ReturnType<typeof vi.fn>;
@@ -24,8 +33,17 @@ describe('EnrollmentsService', () => {
   let coursesRepository: { findOneBy: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    queryBuilder = {
+      andWhere: vi.fn(() => queryBuilder),
+      getManyAndCount: vi.fn().mockResolvedValue([[], 0]),
+      leftJoinAndSelect: vi.fn(() => queryBuilder),
+      orderBy: vi.fn(() => queryBuilder),
+      skip: vi.fn(() => queryBuilder),
+      take: vi.fn(() => queryBuilder),
+    };
     enrollmentsRepository = {
       create: vi.fn((value) => value),
+      createQueryBuilder: vi.fn(() => queryBuilder),
       find: vi.fn(),
       findOne: vi.fn(),
       findOneBy: vi.fn(),
@@ -107,15 +125,71 @@ describe('EnrollmentsService', () => {
     expect(enrollmentsRepository.save).not.toHaveBeenCalled();
   });
 
-  it('loads related student and course data when listing enrollments', async () => {
-    enrollmentsRepository.find.mockResolvedValue([]);
+  it('joins student and course and applies related-resource filters', async () => {
+    await expect(
+      service.findAll({ studentId: 3, courseId: 8, page: 2, limit: 5 }),
+    ).resolves.toEqual({
+      items: [],
+      meta: { total: 0, page: 2, limit: 5 },
+    });
 
-    await service.findAll({ studentId: 3, courseId: 8 });
+    expect(enrollmentsRepository.createQueryBuilder).toHaveBeenCalledWith(
+      'enrollment',
+    );
+    expect(queryBuilder.leftJoinAndSelect).toHaveBeenNthCalledWith(
+      1,
+      'enrollment.student',
+      'student',
+    );
+    expect(queryBuilder.leftJoinAndSelect).toHaveBeenNthCalledWith(
+      2,
+      'enrollment.course',
+      'course',
+    );
+    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(
+      1,
+      'student.id = :studentId',
+      { studentId: 3 },
+    );
+    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(
+      2,
+      'course.id = :courseId',
+      { courseId: 8 },
+    );
+    expect(queryBuilder.orderBy).toHaveBeenCalledWith('enrollment.id', 'ASC');
+    expect(queryBuilder.skip).toHaveBeenCalledWith(5);
+    expect(queryBuilder.take).toHaveBeenCalledWith(5);
+  });
 
-    expect(enrollmentsRepository.find).toHaveBeenCalledWith({
-      where: { student: { id: 3 }, course: { id: 8 } },
-      relations: { student: true, course: true },
-      order: { createdAt: 'DESC' },
+  it('binds search text as a parameter and combines active-only filtering', async () => {
+    const search = "' OR 1=1 --";
+
+    await expect(
+      service.findAll({ search, activeOnly: 'true' }),
+    ).resolves.toEqual({
+      items: [],
+      meta: { total: 0, page: 1, limit: 10 },
+    });
+
+    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(
+      1,
+      '(student.name ILIKE :search OR course.title ILIKE :search)',
+      { search: `%${search}%` },
+    );
+    expect(queryBuilder.andWhere).toHaveBeenNthCalledWith(
+      2,
+      'student.isActive = :active',
+      { active: true },
+    );
+    expect(queryBuilder.getManyAndCount).toHaveBeenCalledOnce();
+  });
+
+  it('returns an empty paginated collection when no rows match', async () => {
+    queryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
+
+    await expect(service.findAll({ search: 'no-match' })).resolves.toEqual({
+      items: [],
+      meta: { total: 0, page: 1, limit: 10 },
     });
   });
 
