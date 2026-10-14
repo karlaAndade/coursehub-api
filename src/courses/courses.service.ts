@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
 import { CreateCourseDto } from './dto/create-course.dto.js';
 import { UpdateCourseDto } from './dto/update-course.dto.js';
+import { CoursesQueryDto } from './dto/courses-query.dto.js';
 import { Course } from './entities/course.entity.js';
 
 @Injectable()
@@ -15,8 +16,25 @@ export class CoursesService {
     @InjectRepository(Course) private readonly courses: Repository<Course>,
   ) {}
 
-  findAll(level?: string) {
-    return this.courses.find({ where: level ? { level } : {}, order: { id: "ASC" } });
+  async findAll(query: CoursesQueryDto) {
+    const { level, page, limit, sortBy, order } = query;
+    const [items, total] = await this.courses.findAndCount({
+      where: level ? { level } : {},
+      order:
+        sortBy === 'id' ? { id: order } : { [sortBy]: order, id: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number): Promise<Course> {
