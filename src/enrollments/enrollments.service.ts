@@ -34,19 +34,19 @@ export class EnrollmentsService {
       );
     }
 
-    // 2. El curso existe
+    // 2. El estudiante está activo
+    if (!student.isActive) {
+      throw new BadRequestException(
+        'No se puede matricular a un estudiante inactivo',
+      );
+    }
+
+    // 3. El curso existe
     const course = await this.coursesRepository.findOneBy({
       id: dto.courseId,
     });
     if (!course) {
       throw new NotFoundException(`No existe el curso con id ${dto.courseId}`);
-    }
-
-    // 3. El estudiante está activo
-    if (!student.isActive) {
-      throw new BadRequestException(
-        'No se puede matricular a un estudiante inactivo',
-      );
     }
 
     // 4. No existe ya la pareja estudiante-curso

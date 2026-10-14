@@ -58,7 +58,19 @@ export class StudentsService {
         'No se puede eliminar a un estudiante inactivo',
       );
     }
-    await this.studentsRepository.remove(student);
+    try {
+      await this.studentsRepository.remove(student);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string })?.code === '23503'
+      ) {
+        throw new ConflictException(
+          'No se puede eliminar a un estudiante con matrículas asociadas',
+        );
+      }
+      throw error;
+    }
   }
 
   // Regla en el servicio: el correo no puede pertenecer a otro estudiante

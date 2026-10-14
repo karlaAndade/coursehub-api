@@ -17,13 +17,13 @@ export class Enrollment {
 
   @ManyToOne(() => Student, (student) => student.enrollments, {
     nullable: false,
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   student: Relation<Student>;
 
   @ManyToOne(() => Course, (course) => course.enrollments, {
     nullable: false,
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   course: Relation<Course>;
 

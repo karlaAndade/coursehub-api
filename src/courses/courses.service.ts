@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CreateCourseDto } from './dto/create-course.dto.js';
 import { UpdateCourseDto } from './dto/update-course.dto.js';
 import { Course } from './entities/course.entity.js';
@@ -32,7 +36,19 @@ export class CoursesService {
 
   async remove(id: number) {
     const course = await this.findOne(id);
-    await this.courses.remove(course);
+    try {
+      await this.courses.remove(course);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string })?.code === '23503'
+      ) {
+        throw new ConflictException(
+          'No se puede eliminar un curso con matrículas asociadas',
+        );
+      }
+      throw error;
+    }
     return course;
   }
 }
