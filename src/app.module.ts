@@ -9,6 +9,7 @@ import { WelcomeService } from './welcome.service.js';
 import { CoursesModule } from './courses/courses.module.js';
 import { StudentsModule } from './students/students.module.js';
 import { EnrollmentsModule } from './enrollments/enrollments.module.js';
+import { shouldSynchronizeSchema } from './database/typeorm-sync-policy.js';
 
 @Module({
   imports: [
@@ -33,14 +34,16 @@ import { EnrollmentsModule } from './enrollments/enrollments.module.js';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.getOrThrow('DATABASE_HOST'),
+        host: config.getOrThrow<string>('DATABASE_HOST'),
         port: config.getOrThrow<number>('DATABASE_PORT'),
-        username: config.getOrThrow('DATABASE_USER'),
-        password: config.getOrThrow('DATABASE_PASSWORD'),
-        database: config.getOrThrow('DATABASE_NAME'),
+        username: config.getOrThrow<string>('DATABASE_USER'),
+        password: config.getOrThrow<string>('DATABASE_PASSWORD'),
+        database: config.getOrThrow<string>('DATABASE_NAME'),
         autoLoadEntities: true,
-        // Solo para desarrollo local: se activa con DATABASE_SYNCHRONIZE=true
-        synchronize: config.get('DATABASE_SYNCHRONIZE') === 'true',
+        synchronize: shouldSynchronizeSchema(
+          config.getOrThrow<string>('NODE_ENV'),
+          config.get<string>('DATABASE_SYNCHRONIZE'),
+        ),
       }),
     }),
     CoursesModule,
