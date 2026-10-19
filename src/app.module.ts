@@ -10,6 +10,8 @@ import { CoursesModule } from './courses/courses.module.js';
 import { StudentsModule } from './students/students.module.js';
 import { EnrollmentsModule } from './enrollments/enrollments.module.js';
 import { shouldSynchronizeSchema } from './database/typeorm-sync-policy.js';
+import { UsersModule } from './users/users.module.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
@@ -49,6 +51,8 @@ import { shouldSynchronizeSchema } from './database/typeorm-sync-policy.js';
     CoursesModule,
     StudentsModule,
     EnrollmentsModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController, WelcomeController],
   providers: [AppService, WelcomeService],
