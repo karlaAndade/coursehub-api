@@ -30,6 +30,8 @@ import { AuthModule } from './auth/auth.module.js';
         DATABASE_SYNCHRONIZE: Joi.string()
           .valid('true', 'false')
           .default('false'),
+        JWT_SECRET: Joi.string().min(32).required(),
+        JWT_EXPIRES_IN: Joi.string().default('15m'),
       }),
     }),
     TypeOrmModule.forRootAsync({
