@@ -9,16 +9,19 @@
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { EnrollmentsService } from './enrollments.service.js';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto.js';
 import { QueryEnrollmentsDto } from './dto/query-enrollments.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 
 @Controller()
 export class EnrollmentsController {
   constructor(private readonly enrollmentsService: EnrollmentsService) {}
 
   @Post('enrollments')
+  @UseGuards(JwtAuthGuard)
   create(@Body() dto: CreateEnrollmentDto) {
     return this.enrollmentsService.create(dto);
   }
