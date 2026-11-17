@@ -3,13 +3,25 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Course } from './entities/course.entity.js';
 import { CoursesService } from './courses.service.js';
 import { CoursesQueryDto } from './dto/courses-query.dto.js';
+import { UserRole } from '../users/user-role.enum.js';
+import { ForbiddenException } from '@nestjs/common';
 
 describe('CoursesService', () => {
   let service: CoursesService;
-  let coursesRepository: { findAndCount: ReturnType<typeof vi.fn> };
+  let coursesRepository: {
+    findAndCount: ReturnType<typeof vi.fn>;
+    findOneBy: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    save: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
-    coursesRepository = { findAndCount: vi.fn() };
+    coursesRepository = {
+      findAndCount: vi.fn(),
+      findOneBy: vi.fn(),
+      create: vi.fn((course) => course),
+      save: vi.fn((course) => course),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CoursesService,
@@ -63,5 +75,69 @@ describe('CoursesService', () => {
       skip: 3,
       take: 3,
     });
+  });
+
+  it('assigns the authenticated creator when creating a course', async () => {
+    const actor = {
+      id: 12,
+      email: 'teacher@example.test',
+      role: UserRole.TEACHER,
+    };
+    const dto = { title: 'Nest Basics', level: 'beginner' };
+
+    await service.create(dto, actor);
+
+    expect(coursesRepository.create).toHaveBeenCalledWith({
+      ...dto,
+      createdByUserId: actor.id,
+    });
+  });
+
+  it('allows the teacher who owns a course to update it', async () => {
+    const course = { id: 4, title: 'Nest Basics', createdByUserId: 12 };
+    coursesRepository.findOneBy.mockResolvedValue(course);
+    const actor = {
+      id: 12,
+      email: 'teacher@example.test',
+      role: UserRole.TEACHER,
+    };
+
+    await expect(
+      service.update(4, { title: 'Updated course' }, actor),
+    ).resolves.toEqual({ ...course, title: 'Updated course' });
+  });
+
+  it.each([
+    ['another teacher', 13, UserRole.TEACHER],
+    ['a student', 12, UserRole.STUDENT],
+  ])(
+    'forbids %s from updating a course they cannot manage',
+    async (_label, actorId, role) => {
+      coursesRepository.findOneBy.mockResolvedValue({
+        id: 4,
+        title: 'Nest Basics',
+        createdByUserId: 12,
+      });
+      const actor = {
+        id: actorId,
+        email: 'user@example.test',
+        role,
+      };
+
+      await expect(
+        service.update(4, { title: 'Not allowed' }, actor),
+      ).rejects.toThrow(ForbiddenException);
+      expect(coursesRepository.save).not.toHaveBeenCalled();
+    },
+  );
+
+  it('allows an administrator to update a course owned by someone else', async () => {
+    const course = { id: 4, title: 'Nest Basics', createdByUserId: 12 };
+    coursesRepository.findOneBy.mockResolvedValue(course);
+    const admin = { id: 1, email: 'admin@example.test', role: UserRole.ADMIN };
+
+    await expect(
+      service.update(4, { title: 'Updated by admin' }, admin),
+    ).resolves.toEqual({ ...course, title: 'Updated by admin' });
   });
 });

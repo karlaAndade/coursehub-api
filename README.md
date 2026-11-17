@@ -44,6 +44,28 @@ La API queda disponible en `http://localhost:3000`. Con `DATABASE_SYNCHRONIZE=tr
 | PATCH | `/courses/:id` | Modifica un curso |
 | DELETE | `/courses/:id` | Elimina un curso |
 
+### Roles y propiedad de cursos
+
+Las cuentas nuevas reciben el rol `student`. Para las cuentas de práctica, registra tres usuarios con contraseñas desechables locales y luego asigna sus roles directamente en la base de desarrollo:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'admin@example.test';
+UPDATE users SET role = 'teacher' WHERE email = 'teacher@example.test';
+UPDATE users SET role = 'student' WHERE email = 'student@example.test';
+```
+
+Inicia sesión nuevamente después de cambiar roles. El JWT identifica al usuario; la API obtiene el rol vigente de la base de datos en cada solicitud autenticada. `GET /auth/me` permite comprobar la identidad y el rol. No guardes contraseñas ni tokens reales en scripts o evidencia.
+
+| Acción | Admin | Docente propietario | Docente ajeno | Estudiante | Sin token |
+|---|---:|---:|---:|---:|---:|
+| `POST /courses` | 201 | 201 | 201 | 403 | 401 |
+| `PATCH /courses/:id` | 200 | 200 | 403 | 403 | 401 |
+| `DELETE /courses/:id` | 200 | 403 | 403 | 403 | 401 |
+
+Al crear un curso, el servidor guarda al usuario autenticado como propietario; el cuerpo no acepta ni decide el identificador de propietario. Los cursos anteriores a esta regla pueden quedar sin propietario y solo el administrador podrá modificarlos o eliminarlos. `401` significa que no hay una identidad válida y `403` que la identidad autenticada no tiene permiso.
+
+La identidad autenticada contiene `id`, `email` y `role`. El rol aplica la política general y `createdByUserId` del curso permite comprobar propiedad en el servicio. Los cambios de esquema deben desplegarse mediante migraciones en producción; `DATABASE_SYNCHRONIZE` es solo para desarrollo local.
+
 ### Estudiantes
 
 | Método | Ruta | Descripción | Códigos |

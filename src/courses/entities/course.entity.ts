@@ -1,18 +1,32 @@
-﻿import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'; // 1
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Enrollment } from '../../enrollments/entities/enrollment.entity.js';
+import { User } from '../../users/entities/user.entity.js';
 
-@Entity('courses') // 2
-export class Course { // 3
-  @PrimaryGeneratedColumn() // 4
+@Entity('courses')
+export class Course {
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column() // 5
+  @Column()
   title: string;
 
-  @Column() // 6
+  @Column()
   level: string;
 
-  // Relación inversa: un curso tiene muchas matrículas
+  @Column({ nullable: true })
+  createdByUserId: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'createdByUserId' })
+  createdBy: User | null;
+
   @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
   enrollments: Enrollment[];
 }

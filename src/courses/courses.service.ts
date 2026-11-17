@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,8 @@ import { CreateCourseDto } from './dto/create-course.dto.js';
 import { UpdateCourseDto } from './dto/update-course.dto.js';
 import { CoursesQueryDto } from './dto/courses-query.dto.js';
 import { Course } from './entities/course.entity.js';
+import type { AuthenticatedUser } from '../auth/types/jwt-payload.type.js';
+import { UserRole } from '../users/user-role.enum.js';
 
 @Injectable()
 export class CoursesService {
@@ -20,8 +23,7 @@ export class CoursesService {
     const { level, page, limit, sortBy, order } = query;
     const [items, total] = await this.courses.findAndCount({
       where: level ? { level } : {},
-      order:
-        sortBy === 'id' ? { id: order } : { [sortBy]: order, id: 'ASC' },
+      order: sortBy === 'id' ? { id: order } : { [sortBy]: order, id: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -43,12 +45,20 @@ export class CoursesService {
     return course;
   }
 
-  create(dto: CreateCourseDto) {
-    return this.courses.save(this.courses.create(dto));
+  create(dto: CreateCourseDto, actor: AuthenticatedUser) {
+    return this.courses.save(
+      this.courses.create({ ...dto, createdByUserId: actor.id }),
+    );
   }
 
-  async update(id: number, dto: UpdateCourseDto) {
+  async update(id: number, dto: UpdateCourseDto, actor: AuthenticatedUser) {
     const course = await this.findOne(id);
+    const isAdmin = actor.role === UserRole.ADMIN;
+    const isOwner = course.createdByUserId === actor.id;
+    if (!isAdmin && (actor.role !== UserRole.TEACHER || !isOwner)) {
+      throw new ForbiddenException('You cannot modify this course');
+    }
+
     return this.courses.save(Object.assign(course, dto));
   }
 

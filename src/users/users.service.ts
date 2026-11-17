@@ -14,6 +14,10 @@ export class UsersService {
     return this.usersRepository.findOneBy({ email });
   }
 
+  findById(id: number) {
+    return this.usersRepository.findOneBy({ id });
+  }
+
   findByEmailWithHash(email: string) {
     return this.usersRepository
       .createQueryBuilder('user')
