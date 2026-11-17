@@ -1,5 +1,7 @@
 ﻿import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Joi from 'joi';
 import { AppController } from './app.controller.js';
@@ -32,6 +34,9 @@ import { AuthModule } from './auth/auth.module.js';
           .default('false'),
         JWT_SECRET: Joi.string().min(32).required(),
         JWT_EXPIRES_IN: Joi.string().default('15m'),
+        CORS_ORIGINS: Joi.string().default(
+          'http://localhost:3000,http://localhost:5173',
+        ),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -50,6 +55,7 @@ import { AuthModule } from './auth/auth.module.js';
         ),
       }),
     }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
     CoursesModule,
     StudentsModule,
     EnrollmentsModule,
@@ -57,6 +63,10 @@ import { AuthModule } from './auth/auth.module.js';
     AuthModule,
   ],
   controllers: [AppController, WelcomeController],
-  providers: [AppService, WelcomeService],
+  providers: [
+    AppService,
+    WelcomeService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

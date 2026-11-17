@@ -22,6 +22,7 @@ Copia `.env.example` como `.env` y completa los valores reales. El archivo `.env
 | `DATABASE_USER` | Usuario de PostgreSQL | `postgres` |
 | `DATABASE_PASSWORD` | Contraseña del usuario | (tu contraseña) |
 | `DATABASE_SYNCHRONIZE` | `true` crea y actualiza las tablas automáticamente | `true` |
+| `CORS_ORIGINS` | Orígenes web permitidos, separados por coma y sin rutas | `http://localhost:3000,http://localhost:5173` |
 
 `DATABASE_SYNCHRONIZE=true` es solo para desarrollo local. En cualquier otro entorno debe estar en `false` o ausente, y las tablas se manejarían con migraciones (fuera del alcance de esta entrega).
 
@@ -65,6 +66,14 @@ Inicia sesión nuevamente después de cambiar roles. El JWT identifica al usuari
 Al crear un curso, el servidor guarda al usuario autenticado como propietario; el cuerpo no acepta ni decide el identificador de propietario. Los cursos anteriores a esta regla pueden quedar sin propietario y solo el administrador podrá modificarlos o eliminarlos. `401` significa que no hay una identidad válida y `403` que la identidad autenticada no tiene permiso.
 
 La identidad autenticada contiene `id`, `email` y `role`. El rol aplica la política general y `createdByUserId` del curso permite comprobar propiedad en el servicio. Los cambios de esquema deben desplegarse mediante migraciones en producción; `DATABASE_SYNCHRONIZE` es solo para desarrollo local.
+
+### Controles para una API pública
+
+- **CORS:** `CORS_ORIGINS` limita los orígenes que el navegador puede usar para leer respuestas. El valor local inicial permite `http://localhost:3000` y `http://localhost:5173`; ajústalo a los orígenes exactos de tu frontend. No uses `*`. CORS no autentica ni bloquea solicitudes de Thunder Client, `curl` o servidores.
+- **Rate limit:** la API permite 20 solicitudes por minuto por cliente de red, y `POST /auth/login` permite 5 por minuto. El sexto intento de inicio de sesión dentro de la ventana responde `429 Too Many Requests`, con un mensaje genérico que no revela correo ni contraseña. El contador predeterminado vive en memoria del proceso; en producción con varias instancias usa un almacenamiento compartido o limita en el proxy/API gateway, configurando de forma segura la IP de cliente detrás del proxy.
+- **HTTPS/TLS:** fuera de `localhost`, publica la API solo por HTTPS. Configura TLS en el proxy, balanceador o plataforma de despliegue; no transmitas tokens por HTTP. CORS no cifra el trafico.
+
+Para comprobar CORS desde un navegador, haz una solicitud `fetch` desde un frontend servido en uno de los orígenes permitidos y repite desde un origen que no esté en `CORS_ORIGINS`: el navegador solo permitirá leer la respuesta del origen autorizado. Thunder Client puede probar la ruta y los límites, pero no aplica las restricciones CORS del navegador. Seis solicitudes seguidas a `POST /auth/login` con el mismo cliente deben dar cinco respuestas `200` y luego `429`; espera un minuto antes de repetir. Las rutas que requieren JWT siguen respondiendo `401` sin un token válido incluso desde un origen permitido.
 
 ### Estudiantes
 
