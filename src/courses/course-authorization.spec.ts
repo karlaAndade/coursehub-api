@@ -129,4 +129,19 @@ describe('Course authorization over HTTP', () => {
       .set('Authorization', 'Bearer admin')
       .expect(200);
   });
+
+  it('rejects a non-numeric course ID before reaching the use case', async () => {
+    await request(app.getHttpServer())
+      .get('/courses/not-a-number')
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({
+          statusCode: 400,
+          error: 'Bad Request',
+          path: '/courses/not-a-number',
+        });
+      });
+
+    expect(repository.findById).not.toHaveBeenCalled();
+  });
 });

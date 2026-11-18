@@ -32,8 +32,8 @@ export class CoursesController {
     return this.courses.findAll(query);
   }
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.courses.findOne(Number(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.courses.findOne(id);
   }
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
