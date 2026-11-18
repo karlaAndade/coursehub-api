@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { CoursesController } from './courses.controller.js';
@@ -13,12 +14,12 @@ import type { AuthenticatedUser } from '../auth/types/jwt-payload.type.js';
 
 describe('CoursesController', () => {
   let controller: CoursesController;
-  let courses: { findAll: ReturnType<typeof vi.fn> };
-  let updateCourse: { execute: ReturnType<typeof vi.fn> };
+  let courses: { findAll: ReturnType<typeof jest.fn> };
+  let updateCourse: { execute: ReturnType<typeof jest.fn> };
 
   beforeEach(async () => {
-    courses = { findAll: vi.fn() };
-    updateCourse = { execute: vi.fn() };
+    courses = { findAll: jest.fn() };
+    updateCourse = { execute: jest.fn() };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CoursesController],
       providers: [

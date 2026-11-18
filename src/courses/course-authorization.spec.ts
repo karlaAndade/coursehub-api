@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -44,25 +45,25 @@ describe('Course authorization over HTTP', () => {
 
   let app: INestApplication;
   let repository: {
-    findAll: ReturnType<typeof vi.fn>;
-    findById: ReturnType<typeof vi.fn>;
-    create: ReturnType<typeof vi.fn>;
-    save: ReturnType<typeof vi.fn>;
-    remove: ReturnType<typeof vi.fn>;
+    findAll: ReturnType<typeof jest.fn>;
+    findById: ReturnType<typeof jest.fn>;
+    create: ReturnType<typeof jest.fn>;
+    save: ReturnType<typeof jest.fn>;
+    remove: ReturnType<typeof jest.fn>;
   };
 
   beforeEach(async () => {
     repository = {
-      findAll: vi.fn(),
-      findById: vi.fn().mockResolvedValue({
+      findAll: jest.fn(),
+      findById: jest.fn().mockResolvedValue({
         id: 4,
         title: 'Original course',
         level: 'beginner',
         createdByUserId: 20,
       }),
-      create: vi.fn(),
-      save: vi.fn((course: Course) => Promise.resolve(course)),
-      remove: vi.fn(),
+      create: jest.fn(),
+      save: jest.fn((course: Course) => Promise.resolve(course)),
+      remove: jest.fn(),
     };
 
     const moduleRef = await Test.createTestingModule({

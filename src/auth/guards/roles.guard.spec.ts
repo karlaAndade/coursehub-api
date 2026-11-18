@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesGuard } from './roles.guard.js';
@@ -7,12 +8,12 @@ describe('RolesGuard', () => {
   const handler = () => undefined;
   const controller = class {};
   const reflector = {
-    getAllAndOverride: vi.fn(),
+    getAllAndOverride: jest.fn(),
   };
   let guard: RolesGuard;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     guard = new RolesGuard(reflector as unknown as Reflector);
   });
 

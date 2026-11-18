@@ -106,10 +106,11 @@ El controlador traduce HTTP a entradas del caso de uso; `UpdateCourseUseCase` ap
 Ejecuta las pruebas unitarias de esta regla y de la delegación del controlador, sin conectarse a PostgreSQL ni realizar solicitudes de red, con:
 
 ```bash
+npm test -- update-course
 npm test -- src/courses/update-course.use-case.spec.ts src/courses/courses.controller.spec.ts
 ```
 
-`npm test` ejecuta la suite completa del proyecto.
+El proyecto usa Jest para las pruebas unitarias; `npm test` ejecuta esa suite. Las pruebas del caso de uso usan un repositorio falso: por eso controlan las respuestas de `findById` y verifican tanto el error de autorización como que `save` no se invoque, sin iniciar HTTP ni PostgreSQL. Los tests HTTP de controles de seguridad y las pruebas e2e conservan Vitest y se ejecutan por separado con `npm run test:security` y `npm run test:e2e`.
 
 ### Estudiantes
 

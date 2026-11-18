@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { UnauthorizedException } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';

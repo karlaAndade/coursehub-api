@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import {
   Body,
   Controller,
@@ -75,7 +76,7 @@ describe('Global HTTP components', () => {
 
   afterEach(async () => {
     await app.close();
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('returns a consistent error response for domain errors', async () => {
@@ -120,7 +121,7 @@ describe('Global HTTP components', () => {
   });
 
   it('does not expose unexpected internal error messages', async () => {
-    const logger = vi
+    const logger = jest
       .spyOn(Logger.prototype, 'error')
       .mockImplementation(() => {});
 
@@ -134,11 +135,11 @@ describe('Global HTTP components', () => {
         );
       });
 
-    expect(logger).toHaveBeenCalledOnce();
+    expect(logger).toHaveBeenCalledTimes(1);
   });
 
   it('assigns a request ID and logs only request metadata, not query secrets', async () => {
-    const logger = vi
+    const logger = jest
       .spyOn(Logger.prototype, 'log')
       .mockImplementation(() => {});
 
@@ -153,7 +154,7 @@ describe('Global HTTP components', () => {
   });
 
   it('adds response duration and logs timing without query parameters', async () => {
-    const logger = vi
+    const logger = jest
       .spyOn(Logger.prototype, 'log')
       .mockImplementation(() => {});
 

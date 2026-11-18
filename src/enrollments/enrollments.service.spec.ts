@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Course } from '../courses/entities/course.entity.js';
@@ -13,45 +14,45 @@ import { EnrollmentsService } from './enrollments.service.js';
 describe('EnrollmentsService', () => {
   let service: EnrollmentsService;
   let queryBuilder: {
-    andWhere: ReturnType<typeof vi.fn>;
-    getManyAndCount: ReturnType<typeof vi.fn>;
-    leftJoinAndSelect: ReturnType<typeof vi.fn>;
-    orderBy: ReturnType<typeof vi.fn>;
-    skip: ReturnType<typeof vi.fn>;
-    take: ReturnType<typeof vi.fn>;
+    andWhere: ReturnType<typeof jest.fn>;
+    getManyAndCount: ReturnType<typeof jest.fn>;
+    leftJoinAndSelect: ReturnType<typeof jest.fn>;
+    orderBy: ReturnType<typeof jest.fn>;
+    skip: ReturnType<typeof jest.fn>;
+    take: ReturnType<typeof jest.fn>;
   };
   let enrollmentsRepository: {
-    create: ReturnType<typeof vi.fn>;
-    createQueryBuilder: ReturnType<typeof vi.fn>;
-    find: ReturnType<typeof vi.fn>;
-    findOne: ReturnType<typeof vi.fn>;
-    findOneBy: ReturnType<typeof vi.fn>;
-    remove: ReturnType<typeof vi.fn>;
-    save: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof jest.fn>;
+    createQueryBuilder: ReturnType<typeof jest.fn>;
+    find: ReturnType<typeof jest.fn>;
+    findOne: ReturnType<typeof jest.fn>;
+    findOneBy: ReturnType<typeof jest.fn>;
+    remove: ReturnType<typeof jest.fn>;
+    save: ReturnType<typeof jest.fn>;
   };
-  let studentsRepository: { findOneBy: ReturnType<typeof vi.fn> };
-  let coursesRepository: { findOneBy: ReturnType<typeof vi.fn> };
+  let studentsRepository: { findOneBy: ReturnType<typeof jest.fn> };
+  let coursesRepository: { findOneBy: ReturnType<typeof jest.fn> };
 
   beforeEach(async () => {
     queryBuilder = {
-      andWhere: vi.fn(() => queryBuilder),
-      getManyAndCount: vi.fn().mockResolvedValue([[], 0]),
-      leftJoinAndSelect: vi.fn(() => queryBuilder),
-      orderBy: vi.fn(() => queryBuilder),
-      skip: vi.fn(() => queryBuilder),
-      take: vi.fn(() => queryBuilder),
+      andWhere: jest.fn(() => queryBuilder),
+      getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      leftJoinAndSelect: jest.fn(() => queryBuilder),
+      orderBy: jest.fn(() => queryBuilder),
+      skip: jest.fn(() => queryBuilder),
+      take: jest.fn(() => queryBuilder),
     };
     enrollmentsRepository = {
-      create: vi.fn((value) => value),
-      createQueryBuilder: vi.fn(() => queryBuilder),
-      find: vi.fn(),
-      findOne: vi.fn(),
-      findOneBy: vi.fn(),
-      remove: vi.fn(),
-      save: vi.fn(),
+      create: jest.fn((value) => value),
+      createQueryBuilder: jest.fn(() => queryBuilder),
+      find: jest.fn(),
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      remove: jest.fn(),
+      save: jest.fn(),
     };
-    studentsRepository = { findOneBy: vi.fn() };
-    coursesRepository = { findOneBy: vi.fn() };
+    studentsRepository = { findOneBy: jest.fn() };
+    coursesRepository = { findOneBy: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -181,7 +182,7 @@ describe('EnrollmentsService', () => {
       'student.isActive = :active',
       { active: true },
     );
-    expect(queryBuilder.getManyAndCount).toHaveBeenCalledOnce();
+    expect(queryBuilder.getManyAndCount).toHaveBeenCalledTimes(1);
   });
 
   it('returns an empty paginated collection when no rows match', async () => {

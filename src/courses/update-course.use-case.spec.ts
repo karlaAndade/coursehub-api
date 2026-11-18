@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { UserRole } from '../users/user-role.enum.js';
 import {
   CourseAccessDeniedError,
@@ -13,8 +14,8 @@ describe('UpdateCourseUseCase', () => {
 
   beforeEach(() => {
     repository = {
-      findById: vi.fn(),
-      save: vi.fn(),
+      findById: jest.fn(),
+      save: jest.fn(),
     };
     useCase = new UpdateCourseUseCase(repository);
   });
@@ -26,8 +27,8 @@ describe('UpdateCourseUseCase', () => {
       level: 'beginner',
       createdByUserId: 12,
     };
-    vi.mocked(repository.findById).mockResolvedValue(course);
-    vi.mocked(repository.save).mockImplementation(async (value) => value);
+    jest.mocked(repository.findById).mockResolvedValue(course);
+    jest.mocked(repository.save).mockImplementation(async (value) => value);
 
     await expect(
       useCase.execute(
@@ -46,7 +47,7 @@ describe('UpdateCourseUseCase', () => {
     ['a different teacher', 13, UserRole.TEACHER],
     ['a student who is not the owner', 12, UserRole.STUDENT],
   ])('rejects %s without writing to the repository', async (_, id, role) => {
-    vi.mocked(repository.findById).mockResolvedValue({
+    jest.mocked(repository.findById).mockResolvedValue({
       id: 4,
       title: 'Nest Basics',
       level: 'beginner',
@@ -66,8 +67,8 @@ describe('UpdateCourseUseCase', () => {
       level: 'beginner',
       createdByUserId: 12,
     };
-    vi.mocked(repository.findById).mockResolvedValue(course);
-    vi.mocked(repository.save).mockImplementation(async (value) => value);
+    jest.mocked(repository.findById).mockResolvedValue(course);
+    jest.mocked(repository.save).mockImplementation(async (value) => value);
 
     await expect(
       useCase.execute(
@@ -79,7 +80,7 @@ describe('UpdateCourseUseCase', () => {
   });
 
   it('reports a missing course without attempting a save', async () => {
-    vi.mocked(repository.findById).mockResolvedValue(null);
+    jest.mocked(repository.findById).mockResolvedValue(null);
 
     await expect(
       useCase.execute(
