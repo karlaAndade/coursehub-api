@@ -103,6 +103,14 @@ PATCH /courses/:id -> CoursesController -> UpdateCourseUseCase
 
 El controlador traduce HTTP a entradas del caso de uso; `UpdateCourseUseCase` aplica propiedad y reglas de negocio sin depender de HTTP ni TypeORM. Su puerto `CourseRepository` solo declara `findById` y `save`, que son las operaciones que necesita para actualizar. `TypeOrmCourseRepository` implementa el contrato y el módulo lo conecta con `provide`/`useClass`; las otras operaciones de cursos permanecen en `CoursesUseCases`. Las pruebas del caso de actualización usan un repositorio falso y verifican propietario, docente ajeno, estudiante, administrador y curso inexistente sin PostgreSQL.
 
+Ejecuta las pruebas unitarias de esta regla y de la delegación del controlador, sin conectarse a PostgreSQL ni realizar solicitudes de red, con:
+
+```bash
+npm test -- src/courses/update-course.use-case.spec.ts src/courses/courses.controller.spec.ts
+```
+
+`npm test` ejecuta la suite completa del proyecto.
+
 ### Estudiantes
 
 | Método | Ruta | Descripción | Códigos |
