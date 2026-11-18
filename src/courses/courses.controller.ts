@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { CoursesService } from './courses.service.js';
+import { CoursesUseCases } from './application/courses.use-cases.js';
 import { CreateCourseDto } from './dto/create-course.dto.js';
 import { CoursesQueryDto } from './dto/courses-query.dto.js';
 import { UpdateCourseDto } from './dto/update-course.dto.js';
@@ -26,14 +26,14 @@ type RequestWithUser = Request & { user: AuthenticatedUser };
 
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(private readonly courses: CoursesUseCases) {}
   @Get()
   findAll(@Query() query: CoursesQueryDto) {
-    return this.coursesService.findAll(query);
+    return this.courses.findAll(query);
   }
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.coursesService.findOne(Number(id));
+    return this.courses.findOne(Number(id));
   }
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,7 +42,7 @@ export class CoursesController {
     @Body() createCourseDto: CreateCourseDto,
     @Req() request: RequestWithUser,
   ) {
-    return this.coursesService.create(createCourseDto, request.user);
+    return this.courses.create(createCourseDto, request.user);
   }
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -52,12 +52,12 @@ export class CoursesController {
     @Body() body: UpdateCourseDto,
     @Req() request: RequestWithUser,
   ) {
-    return this.coursesService.update(id, body, request.user);
+    return this.courses.update(id, body, request.user);
   }
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.coursesService.remove(id);
+    return this.courses.remove(id);
   }
 }

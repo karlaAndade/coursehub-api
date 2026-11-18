@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { CoursesController } from './courses.controller.js';
-import { CoursesService } from './courses.service.js';
+import { CoursesUseCases } from './application/courses.use-cases.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { ROLES_KEY } from '../auth/decorators/roles.decorator.js';
@@ -10,13 +10,13 @@ import { GUARDS_METADATA } from '@nestjs/common/constants';
 
 describe('CoursesController', () => {
   let controller: CoursesController;
-  let coursesService: { findAll: ReturnType<typeof vi.fn> };
+  let courses: { findAll: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    coursesService = { findAll: vi.fn() };
+    courses = { findAll: vi.fn() };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CoursesController],
-      providers: [{ provide: CoursesService, useValue: coursesService }],
+      providers: [{ provide: CoursesUseCases, useValue: courses }],
     }).compile();
 
     controller = module.get<CoursesController>(CoursesController);
@@ -31,7 +31,7 @@ describe('CoursesController', () => {
 
     controller.findAll(query);
 
-    expect(coursesService.findAll).toHaveBeenCalledWith(query);
+    expect(courses.findAll).toHaveBeenCalledWith(query);
   });
 
   it('requires an admin role and authentication to delete courses', () => {
