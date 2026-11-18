@@ -1,15 +1,12 @@
 import { UserRole } from '../users/user-role.enum.js';
-import {
-  CourseAccessDeniedError,
-  CourseNotFoundError,
-} from './domain/course.errors.js';
+import { CourseNotFoundError } from './domain/course.errors.js';
 import type { Course } from './domain/course.js';
-import type { CourseRepository } from './domain/course-repository.port.js';
+import type { CoursesRepository } from './domain/course-repository.port.js';
 import { CoursesUseCases } from './application/courses.use-cases.js';
 
 describe('CoursesUseCases', () => {
   let useCases: CoursesUseCases;
-  let repository: CourseRepository;
+  let repository: CoursesRepository;
 
   beforeEach(() => {
     repository = {
@@ -54,64 +51,6 @@ describe('CoursesUseCases', () => {
 
     await expect(useCases.create(input, owner)).resolves.toEqual(created);
     expect(repository.create).toHaveBeenCalledWith(input, owner.id);
-  });
-
-  it('allows the teacher who owns a course to update it', async () => {
-    const course: Course = {
-      id: 4,
-      title: 'Nest Basics',
-      level: 'beginner',
-      createdByUserId: 12,
-    };
-    vi.mocked(repository.findById).mockResolvedValue(course);
-    vi.mocked(repository.save).mockImplementation(async (value) => value);
-
-    await expect(
-      useCases.update(
-        4,
-        { title: 'Updated course' },
-        { id: 12, role: UserRole.TEACHER },
-      ),
-    ).resolves.toEqual({ ...course, title: 'Updated course' });
-  });
-
-  it.each([
-    ['another teacher', 13, UserRole.TEACHER],
-    ['a student', 12, UserRole.STUDENT],
-  ])(
-    'denies %s from updating a course they cannot manage',
-    async (_, id, role) => {
-      vi.mocked(repository.findById).mockResolvedValue({
-        id: 4,
-        title: 'Nest Basics',
-        level: 'beginner',
-        createdByUserId: 12,
-      });
-
-      await expect(
-        useCases.update(4, { title: 'Not allowed' }, { id, role }),
-      ).rejects.toThrow(CourseAccessDeniedError);
-      expect(repository.save).not.toHaveBeenCalled();
-    },
-  );
-
-  it('allows an administrator to update a course owned by someone else', async () => {
-    const course: Course = {
-      id: 4,
-      title: 'Nest Basics',
-      level: 'beginner',
-      createdByUserId: 12,
-    };
-    vi.mocked(repository.findById).mockResolvedValue(course);
-    vi.mocked(repository.save).mockImplementation(async (value) => value);
-
-    await expect(
-      useCases.update(
-        4,
-        { title: 'Updated by admin' },
-        { id: 1, role: UserRole.ADMIN },
-      ),
-    ).resolves.toEqual({ ...course, title: 'Updated by admin' });
   });
 
   it('removes only a found course through the repository port', async () => {

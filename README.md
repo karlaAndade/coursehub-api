@@ -96,10 +96,12 @@ Para comprobar estos componentes con Thunder Client, inicia el servidor y prueba
 El módulo de cursos está organizado por responsabilidad:
 
 ```text
-HTTP controller -> CoursesUseCases -> CourseRepository (port) <- TypeOrmCourseRepository -> TypeORM/PostgreSQL
+PATCH /courses/:id -> CoursesController -> UpdateCourseUseCase
+                                      -> CourseRepository (findById, save)
+                                      <- TypeOrmCourseRepository -> TypeORM/PostgreSQL
 ```
 
-El controlador traduce HTTP a entradas del caso de uso; los casos de uso aplican propiedad y reglas de negocio sin depender de HTTP ni TypeORM; el puerto describe las operaciones necesarias; el adaptador implementa ese puerto y traduce errores de persistencia a errores de dominio. Las pruebas de casos de uso usan un repositorio falso, y las pruebas HTTP comprueban guards, filtro y middleware sin conectarse a PostgreSQL.
+El controlador traduce HTTP a entradas del caso de uso; `UpdateCourseUseCase` aplica propiedad y reglas de negocio sin depender de HTTP ni TypeORM. Su puerto `CourseRepository` solo declara `findById` y `save`, que son las operaciones que necesita para actualizar. `TypeOrmCourseRepository` implementa el contrato y el módulo lo conecta con `provide`/`useClass`; las otras operaciones de cursos permanecen en `CoursesUseCases`. Las pruebas del caso de actualización usan un repositorio falso y verifican propietario, docente ajeno, estudiante, administrador y curso inexistente sin PostgreSQL.
 
 ### Estudiantes
 

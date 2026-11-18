@@ -8,9 +8,12 @@ import type {
 export const COURSE_REPOSITORY = Symbol('COURSE_REPOSITORY');
 
 export interface CourseRepository {
-  findAll(query: CourseListQuery): Promise<CourseListResult>;
   findById(id: number): Promise<Course | null>;
-  create(input: CourseInput, createdByUserId: number): Promise<Course>;
   save(course: Course): Promise<Course>;
+}
+
+export interface CoursesRepository extends CourseRepository {
+  findAll(query: CourseListQuery): Promise<CourseListResult>;
+  create(input: CourseInput, createdByUserId: number): Promise<Course>;
   remove(course: Course): Promise<void>;
 }

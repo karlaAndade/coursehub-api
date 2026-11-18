@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { CoursesUseCases } from './application/courses.use-cases.js';
+import { UpdateCourseUseCase } from './application/update-course.use-case.js';
 import { CreateCourseDto } from './dto/create-course.dto.js';
 import { CoursesQueryDto } from './dto/courses-query.dto.js';
 import { UpdateCourseDto } from './dto/update-course.dto.js';
@@ -26,7 +27,10 @@ type RequestWithUser = Request & { user: AuthenticatedUser };
 
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly courses: CoursesUseCases) {}
+  constructor(
+    private readonly courses: CoursesUseCases,
+    private readonly updateCourse: UpdateCourseUseCase,
+  ) {}
   @Get()
   findAll(@Query() query: CoursesQueryDto) {
     return this.courses.findAll(query);
@@ -52,7 +56,7 @@ export class CoursesController {
     @Body() body: UpdateCourseDto,
     @Req() request: RequestWithUser,
   ) {
-    return this.courses.update(id, body, request.user);
+    return this.updateCourse.execute(id, body, request.user);
   }
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)

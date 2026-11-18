@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { CoursesController } from './courses.controller.js';
 import { CoursesUseCases } from './application/courses.use-cases.js';
+import { UpdateCourseUseCase } from './application/update-course.use-case.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { ROLES_KEY } from '../auth/decorators/roles.decorator.js';
@@ -16,7 +17,10 @@ describe('CoursesController', () => {
     courses = { findAll: vi.fn() };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CoursesController],
-      providers: [{ provide: CoursesUseCases, useValue: courses }],
+      providers: [
+        { provide: CoursesUseCases, useValue: courses },
+        { provide: UpdateCourseUseCase, useValue: { execute: vi.fn() } },
+      ],
     }).compile();
 
     controller = module.get<CoursesController>(CoursesController);

@@ -8,11 +8,11 @@ import type {
   CourseListQuery,
   CourseListResult,
 } from '../domain/course.js';
-import type { CourseRepository } from '../domain/course-repository.port.js';
+import type { CoursesRepository } from '../domain/course-repository.port.js';
 import { Course as CourseEntity } from '../entities/course.entity.js';
 
 @Injectable()
-export class TypeOrmCourseRepository implements CourseRepository {
+export class TypeOrmCourseRepository implements CoursesRepository {
   constructor(
     @InjectRepository(CourseEntity)
     private readonly repository: Repository<CourseEntity>,

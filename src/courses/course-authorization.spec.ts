@@ -9,8 +9,9 @@ import type { AuthenticatedUser } from '../auth/types/jwt-payload.type.js';
 import { UserRole } from '../users/user-role.enum.js';
 import { COURSE_REPOSITORY } from './domain/course-repository.port.js';
 import type { Course } from './domain/course.js';
-import type { CourseRepository } from './domain/course-repository.port.js';
+import type { CoursesRepository } from './domain/course-repository.port.js';
 import { CoursesUseCases } from './application/courses.use-cases.js';
+import { UpdateCourseUseCase } from './application/update-course.use-case.js';
 import { CoursesController } from './courses.controller.js';
 
 type AuthenticatedRequest = Request & { user?: AuthenticatedUser };
@@ -68,9 +69,10 @@ describe('Course authorization over HTTP', () => {
       controllers: [CoursesController],
       providers: [
         CoursesUseCases,
+        UpdateCourseUseCase,
         {
           provide: COURSE_REPOSITORY,
-          useValue: repository satisfies CourseRepository,
+          useValue: repository satisfies CoursesRepository,
         },
       ],
     })
