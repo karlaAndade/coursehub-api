@@ -43,7 +43,7 @@ describe('CoursesController', () => {
     expect(courses.findAll).toHaveBeenCalledWith(query);
   });
 
-  it('delegates course ID, update DTO, and authenticated identity to the use case', () => {
+  it('delegates the update and returns the use case result', async () => {
     const id = 42;
     const dto = { title: 'Updated course' };
     const actor: AuthenticatedUser = {
@@ -51,11 +51,29 @@ describe('CoursesController', () => {
       email: 'teacher@example.test',
       role: UserRole.TEACHER,
     };
+    const result = { id, ...dto };
 
     const request = { user: actor } as Request & { user: AuthenticatedUser };
-    controller.update(id, dto, request);
+    updateCourse.execute.mockImplementation(async () => result);
 
+    await expect(controller.update(id, dto, request)).resolves.toEqual(result);
     expect(updateCourse.execute).toHaveBeenCalledWith(id, dto, actor);
+  });
+
+  it('propagates an error from the update use case', async () => {
+    const error = new Error('Update failed');
+    const request = {
+      user: {
+        id: 12,
+        email: 'teacher@example.test',
+        role: UserRole.TEACHER,
+      },
+    } as Request & { user: AuthenticatedUser };
+    updateCourse.execute.mockImplementation(() => Promise.reject(error));
+
+    await expect(
+      controller.update(42, { title: 'Updated course' }, request),
+    ).rejects.toBe(error);
   });
 
   it('requires an admin role and authentication to delete courses', () => {
