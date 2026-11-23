@@ -24,7 +24,7 @@ Copia `.env.example` como `.env` y completa los valores reales. El archivo `.env
 | `DATABASE_SYNCHRONIZE` | `true` crea y actualiza las tablas automáticamente | `true` |
 | `CORS_ORIGINS` | Orígenes web permitidos, separados por coma y sin rutas | `http://localhost:3000,http://localhost:5173` |
 
-`DATABASE_SYNCHRONIZE=true` es solo para desarrollo local. En cualquier otro entorno debe estar en `false` o ausente, y las tablas se manejarían con migraciones (fuera del alcance de esta entrega).
+`DATABASE_SYNCHRONIZE=true` se usa para desarrollo local. En pruebas e2e solo se permite con `NODE_ENV=test` y un `DATABASE_NAME` terminado en `_test`; producción nunca sincroniza automáticamente y debe gestionar el esquema con migraciones.
 
 ## Instalación y ejecución
 
@@ -111,6 +111,21 @@ npm test -- src/courses/update-course.use-case.spec.ts src/courses/courses.contr
 ```
 
 El proyecto usa Jest para las pruebas unitarias; `npm test` ejecuta esa suite. Las pruebas del caso de uso usan un repositorio falso: por eso controlan las respuestas de `findById` y verifican tanto el error de autorización como que `save` no se invoque, sin iniciar HTTP ni PostgreSQL. Los tests HTTP de controles de seguridad y las pruebas e2e conservan Vitest y se ejecutan por separado con `npm run test:security` y `npm run test:e2e`.
+
+### Pruebas e2e y CI
+
+Las pruebas e2e inician la aplicación NestJS y PostgreSQL real. Comprueban la lista pública de cursos, una ruta pública de bienvenida y la ruta protegida `GET /auth/me` con una cuenta temporal registrada en la base de pruebas; esa cuenta se elimina al terminar. No uses la base de desarrollo ni producción.
+
+Para ejecutarlas localmente, crea una base dedicada llamada `coursehub_test` (por ejemplo, con `CREATE DATABASE coursehub_test;` en `psql`) y configura el acceso a PostgreSQL mediante las variables de `.env`. En PowerShell:
+
+```powershell
+$env:NODE_ENV = 'test'
+$env:DATABASE_NAME = 'coursehub_test'
+$env:DATABASE_SYNCHRONIZE = 'true'
+npm run test:e2e
+```
+
+La sincronización está protegida: el esquema solo se genera automáticamente en modo test si el nombre de la base termina en `_test`. GitHub Actions inicia un PostgreSQL efímero y ejecuta auditoría de dependencias de producción, lint, build, pruebas unitarias, controles de seguridad y e2e en cada push a `main` y pull request.
 
 ### Estudiantes
 

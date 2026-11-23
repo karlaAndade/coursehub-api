@@ -52,6 +52,7 @@ import { AuthModule } from './auth/auth.module.js';
         synchronize: shouldSynchronizeSchema(
           config.getOrThrow<string>('NODE_ENV'),
           config.get<string>('DATABASE_SYNCHRONIZE'),
+          config.getOrThrow<string>('DATABASE_NAME'),
         ),
       }),
     }),

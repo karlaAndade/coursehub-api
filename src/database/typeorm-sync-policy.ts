@@ -1,8 +1,10 @@
 export function shouldSynchronizeSchema(
   nodeEnvironment: string,
   requestedSynchronize: string | undefined,
+  databaseName: string,
 ): boolean {
-  return (
-    nodeEnvironment === 'development' && requestedSynchronize === 'true'
-  );
+  if (requestedSynchronize !== 'true') return false;
+  if (nodeEnvironment === 'development') return true;
+
+  return nodeEnvironment === 'test' && databaseName.endsWith('_test');
 }

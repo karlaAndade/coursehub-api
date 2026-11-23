@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: coursehub_test
+          POSTGRES_USER: coursehub
+          POSTGRES_PASSWORD: coursehub-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U coursehub -d coursehub_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_NAME: coursehub_test
+      DATABASE_USER: coursehub
+      DATABASE_PASSWORD: coursehub-test-only
+      DATABASE_SYNCHRONIZE: 'true'
+      JWT_SECRET: test-only-jwt-secret-for-coursehub-e2e
+      JWT_EXPIRES_IN: 15m
+      CORS_ORIGINS: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Audit all dependencies (block critical advisories)
+        run: npm audit --audit-level=critical
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm run lint
+      - run: npm run build
+      - name: Unit tests
+        run: npm test -- --runInBand
+      - name: Security tests
+        run: npm run test:security
+      - name: End-to-end tests
+        run: npm run test:e2e
