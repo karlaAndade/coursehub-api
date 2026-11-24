@@ -125,7 +125,7 @@ $env:DATABASE_SYNCHRONIZE = 'true'
 npm run test:e2e
 ```
 
-La sincronización está protegida: el esquema solo se genera automáticamente en modo test si el nombre de la base termina en `_test`. GitHub Actions inicia un PostgreSQL efímero y ejecuta auditoría de dependencias de producción, lint, build, pruebas unitarias, controles de seguridad y e2e en cada push a `main` y pull request.
+La sincronización está protegida: el esquema solo se genera automáticamente en modo test si el nombre de la base termina en `_test`. GitHub Actions inicia un PostgreSQL efímero y ejecuta auditoría de dependencias de producción, revisión de dependencias nuevas en pull requests, lint, build, pruebas unitarias, controles de seguridad y e2e. El flujo corre en cada push a `main` y pull request, y también se puede lanzar manualmente desde la pestaña Actions.
 
 ### Estudiantes
 
